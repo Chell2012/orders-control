@@ -26,8 +26,8 @@ class UpdateOrderRequest extends FormRequest
         return [
             'product_id' => 'required|integer|exists:products,id',
             'amount' => 'required|integer',
-            'customer_name' => 'sometimes|required|string|max:255',
-            'status' => 'sometimes|in:new,completed',
+            'customer_name' => 'required|string|max:255',
+            'status' => 'required|in:new,completed',
             'comment' => 'nullable|string',
         ];
     }

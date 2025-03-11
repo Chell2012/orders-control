@@ -4,21 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Models\Category;
-use App\Models\Product;
+use App\Repositories\Contracts\CategoryRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 
 class ProductController extends Controller
 {
+    protected $productRepository, $categoryRepository;
+
+    public function __construct(ProductRepositoryInterface $productRepository, CategoryRepositoryInterface $categoryRepository)
+    {
+        $this->productRepository = $productRepository;
+        $this->categoryRepository = $categoryRepository;
+    }
+
     /**
-     * Display a listing of the resource.
-     *
+     * Display a listing of the resource
+     * @param string|null $search
      * @return Response
      */
-    public function index()
+    public function index(?string $search = null): Response
     {
-        $products = Product::all();
+        $products = $this->productRepository->search($search);
         return response()->view('products.index', ['products' => $products]);
     }
 
@@ -27,9 +35,9 @@ class ProductController extends Controller
      *
      * @return Response
      */
-    public function create()
+    public function create(): Response
     {
-        return response()->view('products.create', ['categories' => Category::all()]);
+        return response()->view('products.create', ['categories' => $this->categoryRepository->search(null)]);
     }
 
     /**
@@ -40,54 +48,54 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request): RedirectResponse
     {
-        Product::create($request->validated());
+        $this->productRepository->create($request->validated());
         return redirect()->route('products.index')->with('success', 'Товар добавлен');
     }
 
     /**
      * Display the specified resource.
      *
-     * @param Product $product
+     * @param int $id
      * @return Response
      */
-    public function show(Product $product): Response
+    public function show(int $id): Response
     {
-        return response()->view('products.show', ['product' => $product]);
+        return response()->view('products.show', ['product' => $this->productRepository->find($id)]);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param Product $product
+     * @param int $id
      * @return Response
      */
-    public function edit(Product $product): Response
+    public function edit(int $id): Response
     {
-        return response()->view('products.edit', ['product' => $product]);
+        return response()->view('products.edit', ['product' => $this->productRepository->find($id), 'categories' => $this->categoryRepository->search(null)]);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param UpdateProductRequest $request
-     * @param Product $product
+     * @param int $id
      * @return RedirectResponse
      */
-    public function update(UpdateProductRequest $request, Product $product): RedirectResponse
+    public function update(UpdateProductRequest $request, int $id): RedirectResponse
     {
-        $product->update($request->validated());
+        $this->productRepository->update($id, $request->validated());
         return redirect()->route('products.index')->with('success', 'Товар обновлен');
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param Product $product
+     * @param int $id
      * @return RedirectResponse
      */
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
-        $product->delete();
+        $this->productRepository->delete($id);
         return redirect()->route('products.index')->with('success', 'Товар удален');
     }
 }

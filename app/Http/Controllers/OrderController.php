@@ -40,7 +40,7 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request): RedirectResponse
     {
-        Order::create($request->validated());
+        Order::create(array_merge($request->validated(), ['created_at' => now()]));
         return redirect()->route('orders.index')->with('success', 'Заказ создан!');
     }
 
