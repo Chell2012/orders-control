@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class ProductController extends Controller
@@ -24,10 +25,10 @@ class ProductController extends Controller
      * @param string|null $search
      * @return Response
      */
-    public function index(?string $search = null): Response
+    public function index(Request $request): Response
     {
-        $products = $this->productRepository->search($search);
-        return response()->view('products.index', ['products' => $products]);
+        $products = $this->productRepository->search($request->search);
+        return response()->view('products.index', ['products' => $products, 'search'=>$request->search]);
     }
 
     /**

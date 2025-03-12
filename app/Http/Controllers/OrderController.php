@@ -4,22 +4,29 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
-use App\Models\Order;
-use App\Models\Product;
+use App\Repositories\Contracts\OrderRepositoryInterface;
+use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class OrderController extends Controller
 {
+    protected $orderRepository, $productRepository;
+    public function __construct(ProductRepositoryInterface $productRepository, OrderRepositoryInterface $orderRepository)
+    {
+        $this->productRepository = $productRepository;
+        $this->orderRepository = $orderRepository;
+    }
     /**
      * Display a listing of the resource.
      *
      * @return Response
      */
-    public function index()
+    public function index(Request $request): Response
     {
-        $orders = Order::all();
-        return response()->view('orders.index', ['orders' => $orders]);
+        $orders = $this->orderRepository->search($request->search);
+        return response()->view('orders.index', ['orders' => $orders, 'search'=>$request->search]);
     }
 
     /**
@@ -29,7 +36,7 @@ class OrderController extends Controller
      */
     public function create()
     {
-        return response()->view('orders.create', ['products' => Product::all()]);
+        return response()->view('orders.create', ['products' => $this->productRepository->search(null)]);
     }
 
     /**
@@ -40,54 +47,54 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request): RedirectResponse
     {
-        Order::create(array_merge($request->validated(), ['created_at' => now()]));
+        $this->orderRepository->create(array_merge($request->validated(), ['created_at' => now()]));
         return redirect()->route('orders.index')->with('success', 'Заказ создан!');
     }
 
     /**
      * Display the specified resource.
      *
-     * @param Order $order
+     * @param int $id
      * @return Response
      */
-    public function show(Order $order): Response
+    public function show(int $id): Response
     {
-        return response()->view('orders.show', ['order' => $order]);
+        return response()->view('orders.show', ['order' => $this->orderRepository->find($id)]);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param Order $order
+     * @param int $id
      * @return Response
      */
-    public function edit(Order $order): Response
+    public function edit(int $id): Response
     {
-        return response()->view('orders.edit', ['order' => $order]);
+        return response()->view('orders.edit', ['order' => $this->orderRepository->find($id), 'products' => $this->productRepository->search(null)]);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param UpdateOrderRequest $request
-     * @param Order $order
+     * @param int $id
      * @return RedirectResponse
      */
-    public function update(UpdateOrderRequest $request, Order $order): RedirectResponse
+    public function update(UpdateOrderRequest $request, int $id): RedirectResponse
     {
-        $order->update($request->validated());
+        $this->orderRepository->update($id, $request->validated());
         return redirect()->route('orders.index')->with('success', 'Заказ обновлён!');
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param Order $order
+     * @param int $id
      * @return RedirectResponse
      */
-    public function destroy(Order $order): RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
-        $order->delete();
+        $this->orderRepository->delete($id);
         return redirect()->route('orders.index')->with('success', 'Заказ удалён!');
     }
 }

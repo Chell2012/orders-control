@@ -16,7 +16,7 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
     public function search(?string $name): LengthAwarePaginator
     {
         return isset($name) ?
-            $this->model::with('product')->where('name', 'LIKE', "%{$name}%")->paginate(10) :
+            $this->model::with('product')->where('customer_name', 'LIKE', "%{$name}%")->paginate(10) :
             $this->model::query()->paginate(10);
     }
 }

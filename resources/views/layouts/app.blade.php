@@ -9,7 +9,8 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" href="{{ route('products.index') }}">Магазин</a>
+        <a class="navbar-brand" href="{{ route('products.index') }}">Товары</a>
+        <a class="navbar-brand" href="{{ route('orders.index') }}">Заказы</a>
     </div>
 </nav>
 <div class="container mt-4">
